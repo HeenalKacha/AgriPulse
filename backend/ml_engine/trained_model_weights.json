@@ -1,0 +1,112 @@
+{
+  "commodity": "Tur Dal (Pigeon Pea)",
+  "market": "Mumbai APMC",
+  "model_version": "agripulse-v1.4-production",
+  "training_date": "2024-12-31",
+  "dataset_records_count": 1461,
+  "feature_names": [
+    "lag_1_price",
+    "lag_7_price",
+    "lag_14_price",
+    "lag_30_price",
+    "price_change_7d_pct",
+    "price_change_14d_pct",
+    "hist_volatility_14d",
+    "hist_volatility_30d",
+    "arrivals_current",
+    "arrivals_ma_7d",
+    "arrivals_drop_7d_pct",
+    "rainfall_7d_sum",
+    "rainfall_30d_sum",
+    "monsoon_deficit_pct",
+    "is_monsoon",
+    "is_festive_season",
+    "month_sin",
+    "month_cos"
+  ],
+  "scaler": {
+    "means": [
+      9084.777,
+      9069.7389,
+      9050.8137,
+      9004.6549,
+      0.2379,
+      0.4915,
+      14.1404,
+      14.2591,
+      370.6069,
+      370.7644,
+      0.0812,
+      22.2069,
+      95.1704,
+      -0.9557,
+      0.3444,
+      0.1722,
+      0.0017,
+      -0.034
+    ],
+    "stds": [
+      2133.5492,
+      2140.0255,
+      2147.4902,
+      2162.4497,
+      2.0033,
+      2.783,
+      5.3366,
+      4.8418,
+      232.5241,
+      163.3936,
+      41.0389,
+      35.6269,
+      136.6448,
+      10.067,
+      0.4752,
+      0.3775,
+      0.7161,
+      0.6971
+    ]
+  },
+  "coefficients": [
+    0.0068,
+    0.006,
+    0.0008,
+    -0.0479,
+    0.0126,
+    0.0372,
+    2.9252,
+    1.9886,
+    -0.0309,
+    -0.035,
+    0.0022,
+    0.0457,
+    0.0036,
+    -0.0686,
+    0.0208,
+    -0.0953,
+    0.0679,
+    0.1281
+  ],
+  "intercept": 14.1446,
+  "target_baseline_mean": 14.14,
+  "non_linear_nodes": [
+    {
+      "name": "drought_supply_choke",
+      "condition": "monsoon_deficit_pct < -20.0 and arrivals_drop_7d_pct < -15.0",
+      "adjustment": 6.85
+    },
+    {
+      "name": "high_recent_momentum",
+      "condition": "price_change_7d_pct > 6.0 and hist_volatility_14d > 22.0",
+      "adjustment": 4.2
+    },
+    {
+      "name": "bumper_harvest_stabilization",
+      "condition": "arrivals_ma_7d > 650.0 and rainfall_deficit_pct >= 0.0",
+      "adjustment": -3.5
+    }
+  ],
+  "risk_thresholds": {
+    "low": 14.0,
+    "moderate": 24.0
+  }
+}

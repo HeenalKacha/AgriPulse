@@ -1,0 +1,7 @@
+{
+  "name": "AgriPulse AI",
+  "description": "AI-powered agricultural market forecasting platform predicting Tur Dal price volatility at Mumbai APMC using trained ML models, mandi arrivals, and monsoon rainfall data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

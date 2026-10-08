@@ -1,0 +1,20 @@
+[
+  {
+    "id": "usr_b408fe9ef6eeb5d9",
+    "name": "Heenal Patel",
+    "email": "heenal@agripulse.ai",
+    "salt": "a7654a0c78fc8720c53827433799ca04",
+    "passwordHash": "861fec69d6245f6fc3837b0a26dcd966e5d630df7651767577b879a3a0db568cf41b3d72ec097096613b1db902e53a1e04c3969893d0c2be53dd8f0f49e11e80",
+    "role": "APMC Market Intelligence Analyst",
+    "createdAt": "2026-10-08T17:23:43.056Z"
+  },
+  {
+    "id": "usr_4d2f6ac885db3984",
+    "name": "Rohan Sharma",
+    "email": "analyst_1791480232149@mumbai-apmc.org",
+    "salt": "91a689fe75a262f26c68df11fe74525f",
+    "passwordHash": "33329ed321a028defeb12d157c9c0b75a6a86ec54091848624bb00bef7f672b30467ed650d85dbf95d168f1356714d313049d406059c29a1c2483e300d139a72",
+    "role": "Market Trader & Pulse Analyst",
+    "createdAt": "2026-10-08T17:23:52.160Z"
+  }
+]
