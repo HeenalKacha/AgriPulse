@@ -14,6 +14,17 @@ const isProd = process.env.NODE_ENV === 'production';
 
 app.use(express.json());
 
+// Enable CORS for external frontend deployments (e.g., Vercel)
+app.use((_req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (_req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 // Simulation flag for testing model disconnected state in UI
 let modelSimulatedDisconnected = false;
 

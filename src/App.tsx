@@ -67,9 +67,9 @@ function AppContent() {
       const [cfg, status, mktSummary, mktInsights, history] = await Promise.all([
         fetchConfig(),
         fetchModelStatus(),
-        fetchMarketSummary().catch(() => null),
-        fetchMarketInsights().catch(() => ({ success: true, updatedAt: '', insights: [] })),
-        fetchHistoricalData().catch(() => [])
+        fetchMarketSummary(),
+        fetchMarketInsights(),
+        fetchHistoricalData()
       ]);
 
       setConfig(cfg);
@@ -79,12 +79,13 @@ function AppContent() {
       if (history) setHistoricalData(history);
 
       // 2. Fetch initial forecast if model is connected (using today's live date in Asia/Kolkata)
-      if (status.connected) {
+      if (status && status.connected) {
         try {
           const forecast = await generateForecast({ forecast_date: getIndiaTodayDateString() });
           setLatestForecast(forecast);
-        } catch {
-          // Model forecast error handled gracefully
+        } catch (forecastErr) {
+          console.warn('Initial live forecast skipped:', forecastErr);
+          setLatestForecast(null);
         }
       } else {
         setLatestForecast(null);
@@ -133,6 +134,8 @@ function AppContent() {
       if (newStatus.connected) {
         const forecast = await generateForecast({ forecast_date: getIndiaTodayDateString() });
         setLatestForecast(forecast);
+      } else {
+        setLatestForecast(null);
       }
     } catch (err: any) {
       console.error('Reconnect failed:', err);
