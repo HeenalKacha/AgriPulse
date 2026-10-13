@@ -111,9 +111,6 @@ export const AboutPage: React.FC<AboutPageProps> = ({ commodities, markets }) =>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-bold text-slate-900">{t('about.scalableTitle')}</h3>
-            <p className="text-xs text-slate-500">
-              {t('about.scalableSub')}
-            </p>
           </div>
           <span className="text-xs font-mono text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
             Modular Pipeline

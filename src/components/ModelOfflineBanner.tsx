@@ -25,15 +25,8 @@ export const ModelOfflineBanner: React.FC<ModelOfflineBannerProps> = ({
               </span>
             </h3>
             <p className="text-xs text-rose-800 mt-1 max-w-2xl leading-relaxed">
-              The trained Python ML forecasting backend is unreachable or disconnected. AgriPulse AI adheres to strict data integrity: <strong>no synthetic, random, or unverified predictions are shown</strong>. Live forecasting will resume as soon as the model pipeline reconnects.
+              The forecasting backend is unreachable. Predictions will resume once reconnected.
             </p>
-            <div className="flex items-center gap-3 mt-2 text-[11px] text-rose-700/90">
-              <span>Artifact: trained_model_weights.json</span>
-              <span>·</span>
-              <span>Target: Tur Dal 14-Day Volatility</span>
-              <span>·</span>
-              <span>APMC: Mumbai</span>
-            </div>
           </div>
         </div>
 

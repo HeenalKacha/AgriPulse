@@ -116,9 +116,6 @@ export const MarketTrendsPage: React.FC<MarketTrendsPageProps> = ({ historicalDa
       <div className="bg-white rounded-xl border border-[#E3ECE5] p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-bold text-slate-900">Market Price & Volume Dynamics</h2>
-          <p className="text-xs text-slate-500">
-            Analyze historical price trends, trading bands, and mandi arrivals behavior at Mumbai APMC
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -204,9 +201,6 @@ export const MarketTrendsPage: React.FC<MarketTrendsPageProps> = ({ historicalDa
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Price Trend & Wholesale Trading Band</h3>
-            <p className="text-xs text-slate-500">
-              Modal price alongside daily minimum and maximum traded quotes
-            </p>
           </div>
           <div className="text-xs font-mono text-slate-500">
             {filteredData.length} Data Points
@@ -299,9 +293,6 @@ export const MarketTrendsPage: React.FC<MarketTrendsPageProps> = ({ historicalDa
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Mandi Arrivals vs Wholesale Price</h3>
-            <p className="text-xs text-slate-500">
-              Examining supply elasticity and price dampening during heavy dispatch windows
-            </p>
           </div>
           <span className="text-xs font-mono text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-200">
             Supply Elasticity

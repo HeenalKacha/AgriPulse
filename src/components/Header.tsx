@@ -8,15 +8,10 @@ import {
   Globe,
   ChevronDown,
   Bell,
-  Check,
-  User,
-  Settings,
-  LogOut
+  Check
 } from 'lucide-react';
 import { PageId } from './Sidebar';
-import { useLanguage, SUPPORTED_LANGUAGES, LanguageCode } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
-import { ProfileModal, SettingsModal } from './auth/UserModals';
+import { useLanguage, SUPPORTED_LANGUAGES } from '../context/LanguageContext';
 
 interface HeaderProps {
   activePage: PageId;
@@ -44,22 +39,14 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAlerts
 }) => {
   const { t, language, setLanguage } = useLanguage();
-  const { user, logout } = useAuth();
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
-  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
         setLangDropdownOpen(false);
-      }
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setUserDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -213,11 +200,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Model connection status pill & simulation toggle */}
         <button
           onClick={onToggleModelStatus}
-          title={
-            isModelConnected
-              ? 'Model is connected. Click to simulate disconnected state for testing service-unavailable handling.'
-              : 'Model is disconnected. Click to reconnect.'
-          }
+          title={isModelConnected ? 'Model connected. Click to toggle state.' : 'Model disconnected. Click to reconnect.'}
           className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-colors cursor-pointer ${
             isModelConnected
               ? 'bg-[#F2F8F4] text-[#1B5E34] border-[#D2E7D8] hover:bg-[#E5F2E9]'
@@ -263,97 +246,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="md:hidden">Forecast</span>
           </button>
         )}
-
-        {/* User Profile Area: [ User Icon ] Heenal / Account -> Profile, Settings, Logout */}
-        {user && (
-          <div className="relative pl-1 border-l border-slate-200" ref={userMenuRef}>
-            <button
-              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-slate-50 transition-all flex items-center gap-2 group cursor-pointer shadow-2xs"
-              aria-expanded={userDropdownOpen}
-              aria-label="User account menu"
-            >
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1B4D31] to-[#123521] text-white flex items-center justify-center font-bold text-xs shadow-inner">
-                {user.name ? user.name.charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
-              </div>
-              <div className="text-left leading-tight hidden sm:block">
-                <div className="text-xs font-bold text-slate-800 truncate max-w-[110px]">
-                  {user.name.split(' ')[0]}
-                </div>
-                <div className="text-[10px] text-slate-400 font-medium">Account</div>
-              </div>
-              <ChevronDown
-                className={`w-3 h-3 text-slate-400 transition-transform ${
-                  userDropdownOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-
-            {userDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-60 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1.5 overflow-hidden animate-in fade-in-50 zoom-in-95 duration-100">
-                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-                  <div className="text-xs font-bold text-slate-900 truncate">{user.name}</div>
-                  <div className="text-[11px] text-slate-500 font-mono truncate">{user.email}</div>
-                  <div className="inline-block mt-1 text-[9px] font-semibold uppercase tracking-wider text-emerald-800 bg-emerald-100/70 border border-emerald-200 px-1.5 py-0.5 rounded">
-                    {user.role}
-                  </div>
-                </div>
-
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      setUserDropdownOpen(false);
-                      setIsProfileModalOpen(true);
-                    }}
-                    className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 transition-colors"
-                  >
-                    <User className="w-4 h-4 text-emerald-700" />
-                    <span>Profile</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setUserDropdownOpen(false);
-                      setIsSettingsModalOpen(true);
-                    }}
-                    className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 transition-colors"
-                  >
-                    <Settings className="w-4 h-4 text-slate-500" />
-                    <span>Settings</span>
-                  </button>
-                </div>
-
-                <div className="my-1 border-t border-slate-100" />
-
-                <div className="py-1">
-                  <button
-                    onClick={async () => {
-                      setUserDropdownOpen(false);
-                      await logout();
-                    }}
-                    className="w-full text-left px-4 py-2 text-xs text-rose-700 hover:bg-rose-50 flex items-center gap-2.5 font-semibold transition-colors"
-                  >
-                    <LogOut className="w-4 h-4 text-rose-600" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
-
-      {/* User Profile Modal Dialog */}
-      <ProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-      />
-
-      {/* Security & Settings Modal Dialog */}
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-      />
     </header>
   );
 };

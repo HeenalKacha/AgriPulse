@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { HistoricalRecord } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
+import { getIndiaTodayDateString } from '../../utils/dateUtils';
 
 interface HistoricalDataPageProps {
   historicalData: HistoricalRecord[];
@@ -22,9 +23,16 @@ type SortOrder = 'asc' | 'desc';
 
 export const HistoricalDataPage: React.FC<HistoricalDataPageProps> = ({ historicalData }) => {
   const { t } = useLanguage();
+  const datasetEndDate = useMemo(() => {
+    if (historicalData && historicalData.length > 0) {
+      return historicalData[historicalData.length - 1].date;
+    }
+    return getIndiaTodayDateString();
+  }, [historicalData]);
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('2021-01-01');
-  const [endDate, setEndDate] = useState<string>('2024-12-31');
+  const [endDate, setEndDate] = useState<string>(datasetEndDate);
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -134,9 +142,6 @@ export const HistoricalDataPage: React.FC<HistoricalDataPageProps> = ({ historic
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 pb-4 border-b border-slate-100">
           <div>
             <h2 className="text-sm font-bold text-slate-900">{t('history.title')}</h2>
-            <p className="text-xs text-slate-500">
-              {t('history.sub')}
-            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -183,7 +188,7 @@ export const HistoricalDataPage: React.FC<HistoricalDataPageProps> = ({ historic
             <input
               type="date"
               min="2021-01-01"
-              max="2024-12-31"
+              max={datasetEndDate}
               value={startDate}
               onChange={(e) => {
                 setStartDate(e.target.value);
@@ -201,7 +206,7 @@ export const HistoricalDataPage: React.FC<HistoricalDataPageProps> = ({ historic
             <input
               type="date"
               min="2021-01-01"
-              max="2024-12-31"
+              max={datasetEndDate}
               value={endDate}
               onChange={(e) => {
                 setEndDate(e.target.value);

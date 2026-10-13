@@ -52,43 +52,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'overview' as PageId,
       label: t('nav.overview'),
-      description: t('nav.overviewDesc'),
       icon: LayoutDashboard
     },
     {
       id: 'maharashtra-map' as PageId,
       label: t('nav.map'),
-      description: t('nav.mapDesc'),
       icon: MapPin
     },
     {
       id: 'forecast' as PageId,
       label: t('nav.forecast'),
-      description: t('nav.forecastDesc'),
       icon: TrendingUp
     },
     {
       id: 'market-trends' as PageId,
       label: t('nav.marketTrends'),
-      description: t('nav.marketTrendsDesc'),
       icon: BarChart3
     },
     {
       id: 'rainfall-insights' as PageId,
       label: t('nav.rainfallInsights'),
-      description: t('nav.rainfallInsightsDesc'),
       icon: CloudRain
     },
     {
       id: 'historical-data' as PageId,
       label: t('nav.historicalData'),
-      description: t('nav.historicalDataDesc'),
       icon: Database
     },
     {
       id: 'about' as PageId,
       label: t('nav.about'),
-      description: t('nav.aboutDesc'),
       icon: Info
     }
   ];
@@ -199,7 +192,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onSelectPage(item.id);
                   onCloseMobile();
                 }}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-3 group relative ${
+                className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-2.5 group relative ${
                   isActive
                     ? 'bg-emerald-600/30 text-white border-l-3 border-emerald-400 shadow-sm'
                     : 'text-slate-300 hover:text-white hover:bg-[#1B3C2B]/60'
@@ -210,12 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'
                   }`}
                 />
-                <div className="flex-1 truncate">
-                  <div className="truncate">{item.label}</div>
-                  <div className="text-[10px] text-slate-400 truncate font-normal">
-                    {item.description}
-                  </div>
-                </div>
+                <span className="flex-1 truncate">{item.label}</span>
                 {isActive && <ChevronRight className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
               </button>
             );
@@ -224,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* System & Model Status Footer */}
         <div className="p-3 border-t border-[#1B3C2B] bg-[#0E2218]/90 text-xs">
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center justify-between">
             <span className="text-[11px] text-slate-400">{t('nav.mlBackend')}</span>
             <span
               className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${
@@ -238,9 +226,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               />
               {isModelConnected ? t('nav.connected') : t('nav.offline')}
             </span>
-          </div>
-          <div className="text-[10px] text-slate-400 leading-tight">
-            {t('brand.scopeNote')}
           </div>
         </div>
       </aside>

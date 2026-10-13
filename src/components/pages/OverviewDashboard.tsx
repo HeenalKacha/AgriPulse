@@ -34,6 +34,7 @@ import { ModelOfflineBanner } from '../ModelOfflineBanner';
 import { MaharashtraMap, MapMetric } from '../MaharashtraMap';
 import { useLanguage } from '../../context/LanguageContext';
 import { MarketSummary, HistoricalRecord, PredictionResult, MarketInsightItem } from '../../types';
+import { calculate14DayForecastWindow } from '../../utils/dateUtils';
 
 interface OverviewDashboardProps {
   summary: MarketSummary | null;
@@ -102,18 +103,23 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   // 4. Volatility Forecast Trajectory (From real model inference)
   const forecastChartData = useMemo(() => {
     if (!latestForecast?.forecast?.daily_trajectory) return [];
-    return latestForecast.forecast.daily_trajectory.map((d) => ({
-      day: d.day,
-      dayLabel: d.formatted_date,
-      date: d.date,
-      volatility: d.volatility_pct,
-      lower_bound: d.lower_bound_vol,
-      upper_bound: d.upper_bound_vol,
-      price_median: d.projected_price_median,
-      price_min: d.projected_price_min,
-      price_max: d.projected_price_max,
-      volatility_band: d.volatility_band || [d.lower_bound_vol, d.upper_bound_vol]
-    }));
+    const anchor = latestForecast.reference_date || '';
+    const windowInfo = anchor ? calculate14DayForecastWindow(anchor) : null;
+    return latestForecast.forecast.daily_trajectory.map((d, index) => {
+      const liveDay = windowInfo?.dailyDates[index];
+      return {
+        day: d.day,
+        dayLabel: liveDay ? liveDay.formattedDate : d.formatted_date,
+        date: liveDay ? liveDay.date : d.date,
+        volatility: d.volatility_pct,
+        lower_bound: d.lower_bound_vol,
+        upper_bound: d.upper_bound_vol,
+        price_median: d.projected_price_median,
+        price_min: d.projected_price_min,
+        price_max: d.projected_price_max,
+        volatility_band: d.volatility_band || [d.lower_bound_vol, d.upper_bound_vol]
+      };
+    });
   }, [latestForecast]);
 
   const volatilityValue = isModelConnected && latestForecast
@@ -238,13 +244,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-emerald-700" />
               <h2 className="text-sm font-bold text-slate-900">{t('dashboard.mapPreviewTitle')}</h2>
-              <span className="text-[10px] font-semibold font-mono uppercase bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded">
-                Live State Preview
-              </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {t('dashboard.mapPreviewSub')}
-            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -289,9 +289,6 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900">{t('dashboard.historicalPriceTrend')}</h2>
-              <p className="text-xs text-slate-500">
-                {t('dashboard.historicalPriceTrendSub')}
-              </p>
             </div>
             <div className="text-xs font-mono font-medium text-slate-600 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded">
               Unit: ₹/quintal
@@ -374,9 +371,6 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500">
-                {t('dashboard.volatilityForecastSub')}
-              </p>
             </div>
             <button
               onClick={onNavigateToForecast}
@@ -493,9 +487,6 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900">{t('dashboard.arrivalsTrend')}</h2>
-              <p className="text-xs text-slate-500">
-                {t('dashboard.arrivalsTrendSub')}
-              </p>
             </div>
             <div className="text-xs font-mono font-medium text-slate-600 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded">
               Unit: Quintals
@@ -564,9 +555,6 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900">{t('dashboard.rainfallVsVolatility')}</h2>
-              <p className="text-xs text-slate-500">
-                {t('dashboard.rainfallVsVolatilitySub')}
-              </p>
             </div>
             <div className="text-xs font-mono font-medium text-slate-600 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded">
               Dual Axis
@@ -650,13 +638,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-slate-900">{t('dashboard.dynamicInsights')}</h2>
-              <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                {t('dashboard.liveAgroIntel')}
-              </span>
             </div>
-            <p className="text-xs text-slate-500">
-              {t('dashboard.dynamicInsightsSub')}
-            </p>
           </div>
           <div className="text-xs text-slate-400 font-mono">
             {summary ? `${t('dashboard.asOf')} ${summary.latestDate}` : 'Real-time'}

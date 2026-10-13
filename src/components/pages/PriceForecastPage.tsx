@@ -30,6 +30,7 @@ import { generateForecast } from '../../services/api';
 import { PredictionResult, HistoricalRecord } from '../../types';
 import { ModelOfflineBanner } from '../ModelOfflineBanner';
 import { useLanguage } from '../../context/LanguageContext';
+import { getIndiaTodayDateString, calculate14DayForecastWindow } from '../../utils/dateUtils';
 
 interface PriceForecastPageProps {
   isModelConnected: boolean;
@@ -48,9 +49,9 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
 }) => {
   const { t, language } = useLanguage();
 
-  // Date selector: defaults to latest available date
-  const latestDate = historicalData.length > 0 ? historicalData[historicalData.length - 1].date : '2024-12-31';
-  const [selectedDate, setSelectedDate] = useState<string>(latestDate);
+  // Dynamic live date in India (Asia/Kolkata timezone)
+  const todayIndia = useMemo(() => getIndiaTodayDateString(), []);
+  const [selectedDate, setSelectedDate] = useState<string>(todayIndia);
   const [showAdvancedInputs, setShowAdvancedInputs] = useState<boolean>(false);
 
   // Feature overrides (auto-populated from historical record for chosen date)
@@ -66,7 +67,9 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
   // When selectedDate changes, auto-fetch historical features and trigger model inference
   const isInitialMount = React.useRef(true);
   useEffect(() => {
-    const rec = historicalData.find((r) => r.date === selectedDate);
+    // If selected date is in historical data, use exact record; if live date (e.g. 2026),
+    // use latest available verified market record as baseline features.
+    const rec = historicalData.find((r) => r.date === selectedDate) || (historicalData.length > 0 ? historicalData[historicalData.length - 1] : null);
     if (rec) {
       setModalPriceInput(rec.modal_price.toString());
       setArrivalsInput(rec.arrivals_quintals.toString());
@@ -155,62 +158,28 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
     return t('dashboard.riskLow');
   };
 
-  const trajectoryChartData = useMemo(() => {
-    if (!forecastResult?.forecast?.daily_trajectory) return [];
-    return forecastResult.forecast.daily_trajectory.map((d) => ({
-      ...d,
-      price_corridor: d.price_corridor || [d.projected_price_min, d.projected_price_max],
-      volatility_band: d.volatility_band || [d.lower_bound_vol, d.upper_bound_vol]
-    }));
-  }, [forecastResult]);
-
-  // Dynamic calculation of the future 14-day forecast window
-  const activeAnchorDate = selectedDate || forecastResult?.reference_date || latestDate;
+  // Dynamic calculation of the future 14-day forecast window based on active anchor date
+  const activeAnchorDate = selectedDate || forecastResult?.reference_date || todayIndia;
 
   const futureForecastWindow = useMemo(() => {
-    if (!activeAnchorDate) {
-      return {
-        startDateStr: '',
-        endDateStr: '',
-        displayRange: '—'
-      };
-    }
-    const [year, month, day] = activeAnchorDate.split('-').map(Number);
-    const anchor = new Date(Date.UTC(year, month - 1, day));
-
-    // Day 1 = Anchor Date + 1 day
-    const start = new Date(anchor);
-    start.setUTCDate(anchor.getUTCDate() + 1);
-
-    // Day 14 = Anchor Date + 14 days
-    const end = new Date(anchor);
-    end.setUTCDate(anchor.getUTCDate() + 14);
-
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const startStr = `${start.getUTCFullYear()}-${pad(start.getUTCMonth() + 1)}-${pad(start.getUTCDate())}`;
-    const endStr = `${end.getUTCFullYear()}-${pad(end.getUTCMonth() + 1)}-${pad(end.getUTCDate())}`;
-
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const startMonth = monthNames[start.getUTCMonth()];
-    const endMonth = monthNames[end.getUTCMonth()];
-    const startDay = pad(start.getUTCDate());
-    const endDay = pad(end.getUTCDate());
-    const startYear = start.getUTCFullYear();
-    const endYear = end.getUTCFullYear();
-
-    let displayRange = '';
-    if (startYear !== endYear) {
-      displayRange = `${startMonth} ${startDay}, ${startYear} – ${endMonth} ${endDay}, ${endYear}`;
-    } else {
-      displayRange = `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${endYear}`;
-    }
-
-    return {
-      startDateStr: startStr,
-      endDateStr: endStr,
-      displayRange
-    };
+    return calculate14DayForecastWindow(activeAnchorDate);
   }, [activeAnchorDate]);
+
+  // Trajectory chart points with dynamically updated 14 calendar dates matching activeAnchorDate
+  const trajectoryChartData = useMemo(() => {
+    if (!forecastResult?.forecast?.daily_trajectory) return [];
+    const windowInfo = calculate14DayForecastWindow(activeAnchorDate);
+    return forecastResult.forecast.daily_trajectory.map((d, index) => {
+      const liveDayDate = windowInfo.dailyDates[index];
+      return {
+        ...d,
+        date: liveDayDate ? liveDayDate.date : d.date,
+        formatted_date: liveDayDate ? liveDayDate.formattedDate : d.formatted_date,
+        price_corridor: d.price_corridor || [d.projected_price_min, d.projected_price_max],
+        volatility_band: d.volatility_band || [d.lower_bound_vol, d.upper_bound_vol]
+      };
+    });
+  }, [forecastResult, activeAnchorDate]);
 
   const getCommodityName = () => {
     if (language === 'hi') return 'तूर दाल (अरहर) · देसी फटका';
@@ -241,9 +210,6 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 {isModelConnected ? t('dashboard.trainedModelActive') : t('header.modelOffline')}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {t('forecast.panelSub')}
-            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -282,22 +248,31 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
         {/* Date Selection Bar */}
         <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {t('forecast.refDate')}
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-slate-700">
+                {t('forecast.refDate')}
+              </label>
+              {selectedDate !== todayIndia && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate(todayIndia)}
+                  className="text-[10px] font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-0.5 hover:underline"
+                >
+                  <Clock className="w-3 h-3" />
+                  <span>Reset to Today</span>
+                </button>
+              )}
+            </div>
             <div className="relative">
               <input
                 type="date"
                 min="2021-02-01"
-                max="2024-12-31"
+                max={todayIndia}
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-full text-xs font-mono font-medium px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
               />
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              {t('forecast.refDateNote')}
-            </p>
           </div>
 
           <div>
@@ -308,7 +283,6 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
               <span>{getCommodityName()}</span>
               <span className="text-[10px] text-emerald-700 font-semibold uppercase">{t('forecast.configured')}</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">Single commodity active in current scope.</p>
           </div>
 
           <div>
@@ -319,7 +293,6 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
               <span>Mumbai APMC (Vashi Terminal)</span>
               <span className="text-[10px] text-emerald-700 font-semibold uppercase">{t('forecast.terminalHub')}</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">{t('forecast.terminalHubNote')}</p>
           </div>
         </div>
 
@@ -330,15 +303,12 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                 {t('forecast.customInputsTitle', { date: selectedDate })}
               </span>
-              <span className="text-[11px] text-slate-500">
-                {t('forecast.customInputsSub')}
-              </span>
             </div>
 
             {/* Quick Scenario Simulators for testing different risk classifications */}
             <div className="mb-3.5 pb-3 border-b border-slate-200/80">
               <span className="text-[11px] font-semibold text-slate-600 block mb-1.5">
-                Quick Scenario Simulators (Test Dynamic Fluctuation Tiers):
+                Scenario Simulators:
               </span>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -351,7 +321,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                   }}
                   className="px-2.5 py-1 text-[11px] font-medium rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors"
                 >
-                  🟢 0–5% Low Fluctuation (Calm Flush)
+                  🟢 0–5% Low
                 </button>
                 <button
                   type="button"
@@ -363,7 +333,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                   }}
                   className="px-2.5 py-1 text-[11px] font-medium rounded-md bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors"
                 >
-                  🟡 5–10% Moderate Fluctuation (Normal)
+                  🟡 5–10% Moderate
                 </button>
                 <button
                   type="button"
@@ -375,7 +345,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                   }}
                   className="px-2.5 py-1 text-[11px] font-medium rounded-md bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100 transition-colors"
                 >
-                  🟠 10–20% High Fluctuation (Tight Supply)
+                  🟠 10–20% High
                 </button>
                 <button
                   type="button"
@@ -387,7 +357,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                   }}
                   className="px-2.5 py-1 text-[11px] font-medium rounded-md bg-purple-50 text-purple-800 border border-purple-200 hover:bg-purple-100 transition-colors"
                 >
-                  🔴 &gt;20% Very High Fluctuation (Drought)
+                  🔴 &gt;20% Very High
                 </button>
               </div>
             </div>
@@ -470,15 +440,12 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
                   {t('forecast.predVolTitle')}
                 </span>
-                <div className="flex items-baseline gap-2 mb-1.5">
+                <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tabular-nums">
                     {forecastResult.forecast.predicted_volatility_pct}%
                   </span>
                   <span className="text-xs text-slate-500">{t('dashboard.annualizedSigma')}</span>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed mb-3">
-                  {t('forecast.predVolExplanation')}
-                </p>
               </div>
               <div className="text-xs text-slate-500 pt-2 border-t border-slate-100 flex items-center justify-between">
                 <span>{t('forecast.baseline')}</span>
@@ -489,25 +456,27 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
             </div>
 
             {/* Metric 2: Risk Category */}
-            <div className="bg-white rounded-xl border border-[#E3ECE5] p-5 shadow-xs">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
-                {t('forecast.riskClass')}
-              </span>
-              <div className="flex items-center gap-2 mb-2">
-                <span
-                  className={`text-xl sm:text-2xl font-bold px-3 py-1 rounded-lg border font-mono ${
-                    riskBadgeStyles[riskLevel as keyof typeof riskBadgeStyles] || 'bg-slate-100'
-                  }`}
-                >
-                  {forecastResult.forecast.predicted_volatility_pct > 20
-                    ? 'VERY HIGH'
-                    : getRiskLabel(riskLevel).toUpperCase()}
+            <div className="bg-white rounded-xl border border-[#E3ECE5] p-5 shadow-xs flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
+                  {t('forecast.riskClass')}
                 </span>
-                {forecastResult.forecast.predicted_volatility_pct > 20 && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200 uppercase font-mono">
-                    &gt;20% Shock
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={`text-xl sm:text-2xl font-bold px-3 py-1 rounded-lg border font-mono ${
+                      riskBadgeStyles[riskLevel as keyof typeof riskBadgeStyles] || 'bg-slate-100'
+                    }`}
+                  >
+                    {forecastResult.forecast.predicted_volatility_pct > 20
+                      ? 'VERY HIGH'
+                      : getRiskLabel(riskLevel).toUpperCase()}
                   </span>
-                )}
+                  {forecastResult.forecast.predicted_volatility_pct > 20 && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200 uppercase font-mono">
+                      &gt;20% Shock
+                    </span>
+                  )}
+                </div>
               </div>
               <p className="text-xs text-slate-600 pt-2 border-t border-slate-100 leading-snug">
                 {forecastResult.forecast.risk_description}
@@ -520,12 +489,9 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
                   {t('forecast.forecastWindow')}
                 </span>
-                <div className="text-lg sm:text-xl font-bold text-slate-900 font-mono mb-1.5">
+                <div className="text-lg sm:text-xl font-bold text-slate-900 font-mono mb-2">
                   {forecastResult.forecast_period?.display_range || futureForecastWindow.displayRange}
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed mb-3">
-                  {t('forecast.forecastWindowExplanation')}
-                </p>
               </div>
               <div className="text-xs text-slate-500 pt-2 border-t border-slate-100 flex items-center justify-between">
                 <span>{t('forecast.anchorDate')}</span>
@@ -539,7 +505,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
           {/* Volatility & Risk Classification Reference Scale */}
           <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 text-xs text-slate-700 shadow-2xs">
             <span className="font-bold text-slate-800 block mb-2 uppercase tracking-wider text-[11px]">
-              Predicted Volatility Interpretation Scale:
+              Volatility Scale:
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono">
               <div
@@ -550,7 +516,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 }`}
               >
                 <div className="text-emerald-700 font-bold text-xs mb-0.5">0–5%</div>
-                <div>Low fluctuation</div>
+                <div>Low</div>
               </div>
               <div
                 className={`p-2.5 rounded-lg border transition-all ${
@@ -561,7 +527,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 }`}
               >
                 <div className="text-amber-700 font-bold text-xs mb-0.5">5–10%</div>
-                <div>Moderate fluctuation</div>
+                <div>Moderate</div>
               </div>
               <div
                 className={`p-2.5 rounded-lg border transition-all ${
@@ -572,7 +538,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 }`}
               >
                 <div className="text-rose-700 font-bold text-xs mb-0.5">10–20%</div>
-                <div>High fluctuation</div>
+                <div>High</div>
               </div>
               <div
                 className={`p-2.5 rounded-lg border transition-all ${
@@ -582,7 +548,7 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 }`}
               >
                 <div className="text-purple-700 font-bold text-xs mb-0.5">&gt;20%</div>
-                <div>Very high fluctuation</div>
+                <div>Very High</div>
               </div>
             </div>
           </div>
@@ -594,12 +560,9 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 <h3 className="text-sm font-bold text-slate-900">
                   {t('forecast.trajectoryTitle')}
                 </h3>
-                <p className="text-xs text-slate-500">
-                  {t('forecast.trajectorySub')}
-                </p>
               </div>
               <div className="text-xs font-mono text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
-                {t('forecast.spotAnchor')} ₹{forecastResult.latest_features.modal_price.toLocaleString()}/qtl (Anchor: {forecastResult.reference_date || activeAnchorDate})
+                {t('forecast.spotAnchor')} ₹{forecastResult.latest_features.modal_price.toLocaleString()}/qtl
               </div>
             </div>
 
@@ -724,9 +687,6 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">{t('forecast.contributingFactors')}</h3>
-                <p className="text-xs text-slate-500">
-                  {t('forecast.contributingFactorsSub')}
-                </p>
               </div>
               <span className="text-[11px] text-slate-400 font-mono">
                 Attribution Sum: {forecastResult.forecast.predicted_volatility_pct}%

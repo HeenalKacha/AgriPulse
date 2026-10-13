@@ -106,30 +106,48 @@ def run_prediction(input_params):
             "message": f"Historical dataset unavailable: {str(e)}"
         }
 
-    # 2. Locate anchor date
+    # 2. Locate anchor date (dynamically defaults to today in Asia/Kolkata)
     req_date = input_params.get("forecast_date")
     if not req_date:
-        req_date = data[-1]["date"]
+        try:
+            import zoneinfo
+            kolkata_tz = zoneinfo.ZoneInfo("Asia/Kolkata")
+            req_date = datetime.datetime.now(kolkata_tz).date().isoformat()
+        except Exception:
+            # Fallback to local UTC date if zoneinfo is unavailable
+            req_date = datetime.date.today().isoformat()
+
+    try:
+        req_date_obj = datetime.date.fromisoformat(req_date)
+    except Exception:
+        return {
+            "success": False,
+            "error_type": "INVALID_DATE_FORMAT",
+            "message": f"Invalid date format '{req_date}'. Expected YYYY-MM-DD."
+        }
 
     date_indices = {r["date"]: idx for idx, r in enumerate(data)}
-    if req_date not in date_indices:
-        return {
-            "success": False,
-            "error_type": "INSUFFICIENT_HISTORY",
-            "message": f"Insufficient historical data for this forecast. Date '{req_date}' is outside the verified 2021–2024 historical dataset."
-        }
+    is_live_or_future_date = req_date not in date_indices
 
-    idx = date_indices[req_date]
-    if idx < 14:
-        return {
-            "success": False,
-            "error_type": "INSUFFICIENT_HISTORY",
-            "message": "Insufficient historical data for this forecast."
-        }
-
-    ref_record = data[idx]
-    date_obj = datetime.date.fromisoformat(ref_record["date"])
-    day_of_week = int(ref_record.get("day_of_week", date_obj.weekday()))
+    if req_date in date_indices:
+        idx = date_indices[req_date]
+        if idx < 14:
+            return {
+                "success": False,
+                "error_type": "INSUFFICIENT_HISTORY",
+                "message": "Insufficient historical data for this forecast."
+            }
+        ref_record = data[idx]
+        date_obj = datetime.date.fromisoformat(ref_record["date"])
+        day_of_week = int(ref_record.get("day_of_week", date_obj.weekday()))
+    else:
+        # Date is beyond the historical dataset (e.g. live current date in 2026).
+        # We baseline features from the latest verified market record in the dataset,
+        # using the actual weekday and month of the requested anchor date.
+        ref_record = data[-1]
+        date_obj = req_date_obj
+        day_of_week = date_obj.weekday()
+        idx = len(data) - 1
 
     # 3. Ground-truth historical baselines
     hist_modal = float(ref_record["modal_price"])

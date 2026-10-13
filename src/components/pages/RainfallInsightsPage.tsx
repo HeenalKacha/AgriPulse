@@ -41,7 +41,7 @@ export const RainfallInsightsPage: React.FC<RainfallInsightsPageProps> = ({ hist
         label: '2021 Normal Monsoon',
         status: 'Normal (+1.2%)',
         statusType: 'normal',
-        description: 'Optimal Kharif sowing conditions; steady pod development across Vidarbha; low volatility regime.',
+        description: 'Optimal Kharif sowing conditions; low volatility regime.',
         totalRainfallMm: 980,
         deficitPct: 1.2,
         peakVolatility: 16.2,
@@ -52,7 +52,7 @@ export const RainfallInsightsPage: React.FC<RainfallInsightsPageProps> = ({ hist
         label: '2022 Post-Monsoon Excess',
         status: 'Excess (+11.8%) + Unseasonal Oct Rains',
         statusType: 'warning',
-        description: 'Good southwest monsoon, but untimely cyclonic rains in October damaged mature standing crops, initiating price firming.',
+        description: 'Unseasonal October rains damaged mature standing crops, initiating price firming.',
         totalRainfallMm: 1120,
         deficitPct: 11.8,
         peakVolatility: 22.4,
@@ -63,7 +63,7 @@ export const RainfallInsightsPage: React.FC<RainfallInsightsPageProps> = ({ hist
         label: '2023 Severe El Niño Deficit Year',
         status: 'Severe Deficit (-31.5%)',
         statusType: 'severe_deficit',
-        description: 'Protracted monsoon break in July-August during vegetative & flowering phases. Yields crashed, causing extreme volatility spikes.',
+        description: 'Monsoon break in July-August caused yield contractions and sharp volatility spikes.',
         totalRainfallMm: 620,
         deficitPct: -31.5,
         peakVolatility: 34.8,
@@ -74,7 +74,7 @@ export const RainfallInsightsPage: React.FC<RainfallInsightsPageProps> = ({ hist
         label: '2024 Monsoon Recovery',
         status: 'Above Normal (+7.4%)',
         statusType: 'normal',
-        description: 'La Niña transition restored soil moisture reserves. Increased pulse acreage and timely arrivals moderated spot volatility.',
+        description: 'Restored soil moisture reserves and regular arrivals stabilized spot volatility.',
         totalRainfallMm: 1045,
         deficitPct: 7.4,
         peakVolatility: 19.5,
@@ -144,7 +144,7 @@ export const RainfallInsightsPage: React.FC<RainfallInsightsPageProps> = ({ hist
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Tur Dal (Arhar) is predominantly a rainfed Kharif crop with a 150–180 day cycle. Moisture deficits during flowering trigger acute volatility spikes.
+              Precipitation patterns and pulse price volatility correlation
             </p>
           </div>
 
@@ -204,9 +204,6 @@ export const RainfallInsightsPage: React.FC<RainfallInsightsPageProps> = ({ hist
             <h3 className="text-sm font-bold text-slate-900">
               Daily Precipitation vs Price Volatility ({selectedYear})
             </h3>
-            <p className="text-xs text-slate-500">
-              Rainfall in cultivation districts (Akola, Latur, Solapur) mapped to Mumbai APMC 14-day volatility
-            </p>
           </div>
           <span className="text-xs font-mono text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-200">
             Monsoon Focus (June–Sept)
@@ -298,9 +295,6 @@ export const RainfallInsightsPage: React.FC<RainfallInsightsPageProps> = ({ hist
             <h3 className="text-sm font-bold text-slate-900">
               Multi-Year Monthly Rainfall Comparison (2021–2024)
             </h3>
-            <p className="text-xs text-slate-500">
-              Notice the severe suppression in July–August 2023 (red bar) vs normal and excess years
-            </p>
           </div>
           <span className="text-xs font-mono text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-200">
             Cumulative Monthly (mm)

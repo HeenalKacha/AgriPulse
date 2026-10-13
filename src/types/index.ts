@@ -158,18 +158,3 @@ export interface HistoricalRecord {
   market: string;
 }
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  createdAt: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  token?: string;
-  user?: UserProfile;
-  message?: string;
-}
-

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   MapPin,
   Filter,
@@ -14,6 +14,7 @@ import {
 import { MaharashtraMap, MapMetric } from '../MaharashtraMap';
 import { useLanguage } from '../../context/LanguageContext';
 import { MarketSummary, PredictionResult, CommodityConfig } from '../../types';
+import { getIndiaTodayDateString } from '../../utils/dateUtils';
 
 interface MaharashtraMapPageProps {
   summary: MarketSummary | null;
@@ -27,11 +28,12 @@ export const MaharashtraMapPage: React.FC<MaharashtraMapPageProps> = ({
   commodities
 }) => {
   const { t, language } = useLanguage();
+  const todayIndia = useMemo(() => getIndiaTodayDateString(), []);
   const [activeMetric, setActiveMetric] = useState<MapMetric>('volatility');
   const [selectedCommodity, setSelectedCommodity] = useState<string>('tur_dal');
   const [selectedDivision, setSelectedDivision] = useState<string>('all');
   const [selectedDate, setSelectedDate] = useState<string>(
-    summary?.latestDate || '2024-12-31'
+    summary?.latestDate || todayIndia
   );
 
   const divisions = [
@@ -91,9 +93,6 @@ export const MaharashtraMapPage: React.FC<MaharashtraMapPageProps> = ({
                 Masoor Dal (Lentil) · Coming Soon
               </option>
             </select>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Currently active: Tur Dal (Pigeon Pea)
-            </p>
           </div>
 
           {/* Division / Region Filter */}
@@ -112,9 +111,6 @@ export const MaharashtraMapPage: React.FC<MaharashtraMapPageProps> = ({
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Filter geographic zones across Maharashtra
-            </p>
           </div>
 
           {/* Date Filter */}
@@ -125,15 +121,11 @@ export const MaharashtraMapPage: React.FC<MaharashtraMapPageProps> = ({
             <input
               type="date"
               min="2021-01-01"
-              max="2024-12-31"
+              max={todayIndia}
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="w-full text-xs font-mono px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600"
-            >
-            </input>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Historical APMC reference date
-            </p>
+            />
           </div>
         </div>
       </div>
@@ -154,11 +146,11 @@ export const MaharashtraMapPage: React.FC<MaharashtraMapPageProps> = ({
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheck className="w-4 h-4 text-emerald-300" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-200 font-mono">
-            Data Integrity & Geographic Policy
+            Data Integrity & Geographic Coverage
           </h3>
         </div>
         <p className="text-xs text-slate-200 leading-relaxed">
-          AgriPulse AI maintains strict scientific integrity: districts without verified real-time electronic APMC data are explicitly marked as <strong>Estimated / No Verified Market Data</strong>. No synthetic or fabricated 14-day forecasts are generated for unverified districts. The platform architecture is modularly designed to scale across all 36 Maharashtra APMC networks (including Solapur, Pune, Nashik, Latur, Akola, and Amravati) as authenticated electronic mandi feeds are onboarded.
+          Districts without live electronic feeds display baseline agronomic estimates. Verified electronic feeds and 14-day forecasts are active for Mumbai APMC.
         </p>
       </div>
     </div>

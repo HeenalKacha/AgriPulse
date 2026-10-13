@@ -262,7 +262,7 @@ export const MaharashtraMap: React.FC<MaharashtraMapProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-emerald-200/80 mt-0.5">
-              Agricultural district boundaries projected via WGS84 Mercator · 36 Administrative Districts
+              36 Administrative Districts · Maharashtra
             </p>
           </div>
         </div>
@@ -642,13 +642,6 @@ export const MaharashtraMap: React.FC<MaharashtraMapProps> = ({
                         </span>
                       </div>
                     </div>
-
-                    {/* Unverified Market Disclaimer Footer */}
-                    <div className="mt-2 pt-1.5 border-t border-slate-700/80 text-[10px] text-slate-400 italic">
-                      {vals.isVerified
-                        ? 'Connected to live APMC electronic trading feed.'
-                        : 'Estimated / No Verified Market Data.'}
-                    </div>
                   </div>
                 );
               })()}
@@ -674,10 +667,6 @@ export const MaharashtraMap: React.FC<MaharashtraMapProps> = ({
                 <span className="ml-1 opacity-70 text-[10px]">({hub.note})</span>
               </button>
             ))}
-          </div>
-
-          <div className="text-[11px] text-slate-400 font-mono">
-            Click any district polygon to inspect regional intelligence below
           </div>
         </div>
       </div>
@@ -718,9 +707,6 @@ export const MaharashtraMap: React.FC<MaharashtraMapProps> = ({
                         <div className="text-xs font-bold uppercase tracking-wider">
                           Verified APMC Live Market Data
                         </div>
-                        <div className="text-[10px] text-emerald-700">
-                          Live wholesale trading feed & 14-day ML model active
-                        </div>
                       </div>
                     </div>
                   ) : (
@@ -728,10 +714,7 @@ export const MaharashtraMap: React.FC<MaharashtraMapProps> = ({
                       <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                       <div>
                         <div className="text-xs font-bold uppercase tracking-wider">
-                          Estimated / No Verified Market Data
-                        </div>
-                        <div className="text-[10px] text-amber-800">
-                          Agronomic baseline · Do not show fake forecasts
+                          Estimated / Baseline Data
                         </div>
                       </div>
                     </div>
@@ -742,20 +725,20 @@ export const MaharashtraMap: React.FC<MaharashtraMapProps> = ({
               {/* Data Notice Callout */}
               {!isVerified && (
                 <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 flex items-start gap-2.5">
-                  <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <div className="text-xs text-amber-900 leading-relaxed">
-                    <strong>Integrity Notice: </strong>
-                    For <strong>{getDistrictName(selectedDistrict)}</strong>, market prices and production are baseline agronomic estimates. No verified real-time APMC feed or 14-day machine learning volatility forecast is connected for this district. AgriPulse AI strictly does not generate fake predictions or synthetic random numbers.
+                    <strong>Baseline Data: </strong>
+                    Prices and production for <strong>{getDistrictName(selectedDistrict)}</strong> reflect regional agronomic estimates. Live APMC feeds are currently connected for Mumbai.
                   </div>
                 </div>
               )}
 
               {isVerified && (
                 <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <div className="text-xs text-emerald-900 leading-relaxed">
                     <strong>Connected Terminal: </strong>
-                    Mumbai Vashi APMC is connected with live electronic price feeds, arrival dispatches, and trained 14-day realized volatility prediction inference.
+                    Mumbai Vashi APMC has live electronic feeds and 14-day volatility predictions active.
                   </div>
                 </div>
               )}
@@ -867,8 +850,8 @@ export const MaharashtraMap: React.FC<MaharashtraMapProps> = ({
                   </div>
                   <p className="leading-relaxed text-slate-600">
                     {isVerified
-                      ? 'Production and consumption hub with verified historical daily data from 2021 to 2024.'
-                      : 'Scheduled for APMC electronic data integration in Phase 2 pulse expansion roadmap. Strictly displaying estimated agronomic baseline.'}
+                      ? 'Production and consumption hub with verified daily APMC historical series.'
+                      : 'Scheduled for electronic APMC data integration in future roadmap expansion.'}
                   </p>
                 </div>
               </div>

@@ -52,7 +52,7 @@ export const VolatilityAlertModal: React.FC<VolatilityAlertModalProps> = ({
                 {t('alerts.alertTitle')}
               </h3>
               <p className="text-[11px] text-emerald-200/80">
-                Automated risk triggers for Tur Dal at Mumbai APMC
+                Tur Dal · Mumbai APMC
               </p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export const VolatilityAlertModal: React.FC<VolatilityAlertModalProps> = ({
             <div className="flex items-center justify-between mb-1.5">
               <span className="font-bold flex items-center gap-1.5">
                 <AlertTriangle className={`w-3.5 h-3.5 ${isVolTriggered ? 'text-rose-600' : 'text-emerald-600'}`} />
-                <span>14-Day Volatility Trigger ({volatilityThreshold}% Threshold)</span>
+                <span>14-Day Volatility ({volatilityThreshold}% Threshold)</span>
               </span>
               <span
                 className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded ${
@@ -88,8 +88,8 @@ export const VolatilityAlertModal: React.FC<VolatilityAlertModalProps> = ({
                 {isVolTriggered ? 'TRIGGERED' : 'NORMAL'}
               </span>
             </div>
-            <p className="text-[11px] text-slate-600">
-              Current 14-day volatility stands at <strong>{currentVol}%</strong> against your alert ceiling of {volatilityThreshold}%.
+            <p className="text-[11px] text-slate-600 font-mono">
+              Current: <strong>{currentVol}%</strong> · Threshold: {volatilityThreshold}%
             </p>
           </div>
 
@@ -104,7 +104,7 @@ export const VolatilityAlertModal: React.FC<VolatilityAlertModalProps> = ({
             <div className="flex items-center justify-between mb-1.5">
               <span className="font-bold flex items-center gap-1.5">
                 <Package className={`w-3.5 h-3.5 ${isArrivalTriggered ? 'text-amber-600' : 'text-slate-500'}`} />
-                <span>Mandi Supply Inflow Alert</span>
+                <span>Mandi Supply Inflow</span>
               </span>
               <span
                 className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded ${
@@ -114,8 +114,8 @@ export const VolatilityAlertModal: React.FC<VolatilityAlertModalProps> = ({
                 {isArrivalTriggered ? 'BELOW 7D AVG' : 'HEALTHY'}
               </span>
             </div>
-            <p className="text-[11px] text-slate-600">
-              {t('alerts.supplyNotice')} (Latest: {summary?.latestArrivals} qtl vs 7d avg: {summary?.avgArrivals7d} qtl).
+            <p className="text-[11px] text-slate-600 font-mono">
+              Latest: {summary?.latestArrivals} qtl · 7d Avg: {summary?.avgArrivals7d} qtl
             </p>
           </div>
 

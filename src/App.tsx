@@ -16,8 +16,6 @@ import { HistoricalDataPage } from './components/pages/HistoricalDataPage';
 import { AboutPage } from './components/pages/AboutPage';
 import { VolatilityAlertModal } from './components/VolatilityAlertModal';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { AuthPage } from './components/auth/AuthPage';
 import { AgriCropLogo } from './components/AgriCropLogo';
 import {
   fetchConfig,
@@ -28,6 +26,7 @@ import {
   generateForecast,
   toggleModelConnection
 } from './services/api';
+import { getIndiaTodayDateString } from './utils/dateUtils';
 import {
   MarketRegistry,
   MarketSummary,
@@ -40,7 +39,6 @@ import { RefreshCw, AlertCircle } from 'lucide-react';
 
 function AppContent() {
   const { t } = useLanguage();
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [activePage, setActivePage] = useState<PageId>('overview');
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
@@ -80,10 +78,10 @@ function AppContent() {
       if (mktInsights?.insights) setInsights(mktInsights.insights);
       if (history) setHistoricalData(history);
 
-      // 2. Fetch initial forecast if model is connected
+      // 2. Fetch initial forecast if model is connected (using today's live date in Asia/Kolkata)
       if (status.connected) {
         try {
-          const forecast = await generateForecast({});
+          const forecast = await generateForecast({ forecast_date: getIndiaTodayDateString() });
           setLatestForecast(forecast);
         } catch {
           // Model forecast error handled gracefully
@@ -101,10 +99,8 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      loadData();
-    }
-  }, [isAuthenticated, loadData]);
+    loadData();
+  }, [loadData]);
 
   // Toggle model connection simulation (for testing service unavailable state)
   const handleToggleModelStatus = async () => {
@@ -115,7 +111,7 @@ function AppContent() {
       setModelStatus(newStatus);
 
       if (newStatus.connected) {
-        const forecast = await generateForecast({});
+        const forecast = await generateForecast({ forecast_date: getIndiaTodayDateString() });
         setLatestForecast(forecast);
       } else {
         setLatestForecast(null);
@@ -135,7 +131,7 @@ function AppContent() {
       const newStatus = await fetchModelStatus();
       setModelStatus(newStatus);
       if (newStatus.connected) {
-        const forecast = await generateForecast({});
+        const forecast = await generateForecast({ forecast_date: getIndiaTodayDateString() });
         setLatestForecast(forecast);
       }
     } catch (err: any) {
@@ -147,27 +143,7 @@ function AppContent() {
 
   const isModelConnected = modelStatus?.connected ?? false;
 
-  // 1. Check Authentication Status: Show loading spinner during session resolution
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen bg-[#F8FAF7] flex flex-col items-center justify-center p-6 text-center">
-        <AgriCropLogo size="lg" variant="badge" className="mb-4 shadow-md animate-pulse" />
-        <h2 className="text-base font-bold text-slate-800 tracking-tight">AgriPulse AI</h2>
-        <p className="text-xs text-slate-500 mt-1">Verifying encrypted authentication session...</p>
-        <div className="mt-4 flex items-center gap-2 text-xs text-emerald-800">
-          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-          <span>Authenticating user access</span>
-        </div>
-      </div>
-    );
-  }
-
-  // 2. Unauthenticated: Redirect to Login / Sign Up Page
-  if (!isAuthenticated) {
-    return <AuthPage />;
-  }
-
-  // 3. Initial Market & ML Data Loading
+  // Initial Market & ML Data Loading
   if (isInitialLoading) {
     return (
       <div className="min-h-screen bg-[#F8FAF7] flex flex-col items-center justify-center p-6 text-center">
@@ -295,9 +271,7 @@ function AppContent() {
 export default function App() {
   return (
     <LanguageProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <AppContent />
     </LanguageProvider>
   );
 }
