@@ -84,7 +84,13 @@ export async function generateForecast(payload: PredictionPayload): Promise<Pred
     body: JSON.stringify(payload)
   });
 
-  const json = await res.json();
+  let json: any;
+  try {
+    json = await res.json();
+  } catch {
+    json = { message: `Service error (${res.status}): Server returned unexpected response format.` };
+  }
+
   if (!res.ok) {
     const errorMsg = json.message || json.error || 'Failed to generate forecast from ML model';
     const err: any = new Error(errorMsg);

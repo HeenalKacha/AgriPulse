@@ -12,8 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   HelpCircle,
-  Clock,
-  Compass
+  Clock
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -736,19 +735,6 @@ export const PriceForecastPage: React.FC<PriceForecastPageProps> = ({
                 );
               })}
             </div>
-          </div>
-
-          {/* Simple Explanation of the Forecast (Actionable Advisory Narrative) */}
-          <div className="bg-[#143224] text-white rounded-xl p-5 shadow-xs border border-[#1E4533]">
-            <div className="flex items-center gap-2 mb-2">
-              <Compass className="w-4 h-4 text-emerald-300" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-200">
-                {t('forecast.advisoryTitle')}
-              </h3>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-100 leading-relaxed">
-              {forecastResult.forecast.explanation}
-            </p>
           </div>
         </div>
       ) : (
